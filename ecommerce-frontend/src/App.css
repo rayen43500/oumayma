@@ -338,6 +338,40 @@ footer .bg-black {
   background: #f8fafc;
 }
 
+.chatbot-product-option {
+  border-top: 1px solid #d1fae5;
+  padding: 10px 12px;
+  background: #f0fdf4;
+}
+
+.chatbot-product-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #065f46;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.chatbot-product-select-wrap {
+  display: flex;
+}
+
+.chatbot-product-select {
+  width: 100%;
+  border: 1px solid #86efac;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 13px;
+  color: #14532d;
+  background: #ffffff;
+}
+
+.chatbot-product-select:disabled {
+  opacity: 0.7;
+}
+
 .chatbot-input {
   flex: 1;
   border: 1px solid #a7f3d0;

@@ -1,10 +1,15 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import productService from '../services/productService';
 
 function ChatbotWidget() {
   const botName = 'Rigoula AI';
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [productsLoading, setProductsLoading] = useState(false);
+  const [products, setProducts] = useState([]);
+  const [discussProduct, setDiscussProduct] = useState(false);
+  const [selectedProductId, setSelectedProductId] = useState('');
   const [messages, setMessages] = useState([
     {
       role: 'bot',
@@ -14,6 +19,39 @@ function ChatbotWidget() {
 
   const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
   const modelName = process.env.REACT_APP_GEMINI_MODEL || 'gemini-3-flash-preview';
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadProducts = async () => {
+      try {
+        setProductsLoading(true);
+        const result = await productService.getAllProducts({});
+        const list = Array.isArray(result?.data) ? result.data : [];
+
+        if (mounted) {
+          setProducts(list);
+          if (list.length > 0) {
+            setSelectedProductId(String(list[0].id));
+          }
+        }
+      } catch (error) {
+        console.error('Erreur chargement produits pour chatbot:', error);
+      } finally {
+        if (mounted) setProductsLoading(false);
+      }
+    };
+
+    loadProducts();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const selectedProduct = useMemo(
+    () => products.find((product) => String(product.id) === String(selectedProductId)) || null,
+    [products, selectedProductId]
+  );
 
   const askGemini = async (question) => {
     const response = await fetch(
@@ -65,12 +103,20 @@ function ChatbotWidget() {
       return;
     }
 
-    setMessages((prev) => [...prev, { role: 'user', text: question }]);
+    const displayQuestion = discussProduct && selectedProduct
+      ? `${question}\n\n[Produit sélectionné: ${selectedProduct.nom}]`
+      : question;
+
+    setMessages((prev) => [...prev, { role: 'user', text: displayQuestion }]);
     setInput('');
     setLoading(true);
 
     try {
-      const answer = await askGemini(question);
+      const enrichedPrompt = discussProduct && selectedProduct
+        ? `Contexte produit depuis la base de donnees:\nNom produit: ${selectedProduct.nom || ''}\nDescription produit: ${selectedProduct.description || ''}\n\nMessage utilisateur: ${question}\n\nReponds en francais, de facon claire et utile, en tenant compte du produit.`
+        : question;
+
+      const answer = await askGemini(enrichedPrompt);
       setMessages((prev) => [...prev, { role: 'bot', text: answer }]);
     } catch (error) {
       setMessages((prev) => [
@@ -121,6 +167,35 @@ function ChatbotWidget() {
               </div>
             ))}
             {loading && <div className="chatbot-typing">Gemini ecrit...</div>}
+          </div>
+
+          <div className="chatbot-product-option">
+            <label className="chatbot-product-toggle">
+              <input
+                type="checkbox"
+                checked={discussProduct}
+                onChange={(event) => setDiscussProduct(event.target.checked)}
+              />
+              <span>Discuter un produit</span>
+            </label>
+
+            {discussProduct && (
+              <div className="chatbot-product-select-wrap">
+                <select
+                  className="chatbot-product-select"
+                  value={selectedProductId}
+                  onChange={(event) => setSelectedProductId(event.target.value)}
+                  disabled={productsLoading || products.length === 0}
+                >
+                  {products.length === 0 && <option value="">Aucun produit disponible</option>}
+                  {products.map((product) => (
+                    <option key={product.id} value={product.id}>
+                      {product.nom}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
 
           <form className="chatbot-input-row" onSubmit={onSend}>
