@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
+const { sendWelcomeEmail } = require('../services/emailService');
 
 class UserController {
   static async register(req, res) {
@@ -20,10 +21,20 @@ class UserController {
       // Create user
       const userId = await User.create({ nom, prenom, email, password, telephone });
 
+      // Notification email (tentative immédiate)
+      let emailNotice = null;
+      try {
+        await sendWelcomeEmail({ email, nom, prenom });
+      } catch (mailErr) {
+        console.error('⚠️ Email inscription non envoyé:', mailErr.message);
+        emailNotice = 'Inscription réussie, mais email de bienvenue non envoyé.';
+      }
+
       res.status(201).json({
         success: true,
         message: 'Inscription réussie',
-        userId
+        userId,
+        emailNotice
       });
     } catch (error) {
       res.status(500).json({ error: error.message });

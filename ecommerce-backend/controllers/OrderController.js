@@ -1,5 +1,7 @@
 const Order = require('../models/Order');
 const Cart = require('../models/Cart');
+const User = require('../models/User');
+const { sendOrderStatusEmail } = require('../services/emailService');
 
 class OrderController {
   static async getAllOrders(req, res) {
@@ -296,10 +298,27 @@ class OrderController {
   static async updateOrderStatus(req, res) {
     try {
       const { statut } = req.body;
+      const order = await Order.findById(req.params.id);
+      if (!order) {
+        return res.status(404).json({ message: 'Commande non trouvée' });
+      }
+
       const updated = await Order.updateStatus(req.params.id, statut);
       if (!updated) {
         return res.status(404).json({ message: 'Commande non trouvée' });
       }
+
+      const user = await User.findById(order.user_id);
+      if (user?.email) {
+        sendOrderStatusEmail({
+          email: user.email,
+          orderId: req.params.id,
+          statut
+        }).catch((mailErr) => {
+          console.error('⚠️ Email statut commande non envoyé:', mailErr.message);
+        });
+      }
+
       res.json({ success: true, message: 'Statut mis à jour' });
     } catch (error) {
       res.status(500).json({ error: error.message });

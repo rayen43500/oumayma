@@ -141,19 +141,26 @@ function ChatbotWidget() {
         aria-label={`Ouvrir ${botName}`}
         title={botName}
       >
-        <span className="chatbot-fab-icon">RG</span>
+        <span className="chatbot-fab-icon">AI</span>
       </button>
 
       {isOpen && (
         <div className="chatbot-panel" role="dialog" aria-label={botName}>
           <div className="chatbot-header">
-            <strong>{botName}</strong>
+            <div className="chatbot-header-main">
+              <strong>{botName}</strong>
+              <span className="chatbot-header-subtitle">
+                <span className="chatbot-online-dot" />
+                En ligne
+              </span>
+            </div>
             <button
               type="button"
               className="chatbot-close"
               onClick={() => setIsOpen(false)}
+              aria-label="Fermer le chat"
             >
-              x
+              ×
             </button>
           </div>
 
@@ -161,12 +168,21 @@ function ChatbotWidget() {
             {messages.map((message, index) => (
               <div
                 key={`${message.role}-${index}`}
-                className={`chatbot-message chatbot-message-${message.role}`}
+                className={`chatbot-message-row chatbot-message-row-${message.role}`}
               >
-                {message.text}
+                <div className={`chatbot-message chatbot-message-${message.role}`}>
+                  {message.text}
+                </div>
               </div>
             ))}
-            {loading && <div className="chatbot-typing">Gemini ecrit...</div>}
+            {loading && (
+              <div className="chatbot-typing" aria-live="polite">
+                <span className="chatbot-typing-dot" />
+                <span className="chatbot-typing-dot" />
+                <span className="chatbot-typing-dot" />
+                <span className="chatbot-typing-text">Rigoula AI ecrit...</span>
+              </div>
+            )}
           </div>
 
           <div className="chatbot-product-option">
@@ -194,6 +210,11 @@ function ChatbotWidget() {
                     </option>
                   ))}
                 </select>
+                {selectedProduct && (
+                  <p className="chatbot-product-hint">
+                    Produit: {selectedProduct.nom}
+                  </p>
+                )}
               </div>
             )}
           </div>
