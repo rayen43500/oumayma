@@ -25,37 +25,48 @@ export default function TopProduitsStats() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Récupérer les commandes pour calculer les ventes par produit
-        const ordersRes = await api.get("/commandes");
-        let orders = ordersRes.data;
-        if (orders.data) orders = orders.data;
-        if (!Array.isArray(orders)) orders = [];
+        const statsRes = await api.get('/dashboard/top-produits-stats');
+        let rows = Array.isArray(statsRes.data) ? statsRes.data : [];
 
-        // Calculer les ventes par produit
-        const salesByProduct = {};
-        
-        orders.forEach(order => {
-          // La structure correct est order.produits
-          if (order.produits && Array.isArray(order.produits)) {
-            order.produits.forEach(item => {
-              const productName = item.nom || item.name || `Product ${item.id}`;
-              const quantity = item.quantite || item.quantity || 1;
-              salesByProduct[productName] = (salesByProduct[productName] || 0) + quantity;
-            });
-          }
-        });
+        // Fallback: if stats endpoint is empty, rebuild stats from orders payload.
+        if (!rows.length) {
+          const ordersRes = await api.get('/commandes');
+          let orders = ordersRes.data;
+          if (orders?.data) orders = orders.data;
+          if (!Array.isArray(orders)) orders = [];
 
-        // Convertir en array et trier par ventes décroissantes
-        const topProducts = Object.entries(salesByProduct)
-          .map(([name, quantity]) => ({ name, quantity }))
-          .sort((a, b) => b.quantity - a.quantity)
-          .slice(0, 5); // Prendre top 5
+          const salesByProduct = {};
+          orders.forEach((order) => {
+            if (Array.isArray(order.produits)) {
+              order.produits.forEach((item) => {
+                const productName = item.nom || item.name || `Product ${item.id || ''}`;
+                const quantity = Number(item.quantite || item.quantity || 1);
+                salesByProduct[productName] = (salesByProduct[productName] || 0) + quantity;
+              });
+            }
+          });
 
-        // Calculer les pourcentages
-        const totalQty = topProducts.reduce((sum, p) => sum + p.quantity, 0);
-        const normalizedData = topProducts.map(p => ({
-          ...p,
-          pct: totalQty > 0 ? Math.round((p.quantity / totalQty) * 100) : 0
+          const topProducts = Object.entries(salesByProduct)
+            .map(([name, quantity]) => ({ name, total_vendu: quantity }))
+            .sort((a, b) => b.total_vendu - a.total_vendu)
+            .slice(0, 5);
+
+          const total = topProducts.reduce((sum, p) => sum + p.total_vendu, 0);
+          const max = Math.max(1, topProducts[0]?.total_vendu || 1);
+
+          rows = topProducts.map((p) => ({
+            name: p.name,
+            total_vendu: p.total_vendu,
+            pct: Math.round((p.total_vendu / max) * 100),
+            pct_donut: total > 0 ? Math.round((p.total_vendu / total) * 100) : 0,
+          }));
+        }
+
+        const normalizedData = rows.map((row) => ({
+          name: row.name,
+          quantity: Number(row.total_vendu || 0),
+          pct: Number(row.pct || 0),
+          pct_donut: Number(row.pct_donut || 0),
         }));
 
         setProduits(normalizedData);
@@ -68,7 +79,7 @@ export default function TopProduitsStats() {
             data: {
               labels: normalizedData.map(p => p.name),
               datasets: [{
-                data:            normalizedData.map(p => p.pct),
+                data:            normalizedData.map(p => p.pct_donut || p.pct),
                 backgroundColor: DONUT_COLORS,
                 borderWidth:     0,
                 hoverOffset:     6,
@@ -111,6 +122,12 @@ export default function TopProduitsStats() {
   if (error) return (
     <div style={styles.center}>
       <p style={{ color: "#e74c3c", fontSize: 13 }}>{error}</p>
+    </div>
+  );
+
+  if (!produits.length) return (
+    <div style={styles.center}>
+      <p style={{ color: '#999', fontSize: 13 }}>Aucune vente disponible.</p>
     </div>
   );
 

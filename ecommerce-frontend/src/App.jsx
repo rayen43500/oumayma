@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import './App.css';
 import { AuthProvider } from './context/AuthContext.jsx';
 import { SettingsProvider } from './context/SettingsContext.jsx'; 
 import ProtectedRoute from './components/ProtectedRoute.jsx';
@@ -9,6 +10,7 @@ import NavigationBar from './components/Navbar.jsx';
 import Footer from './components/Footer.jsx';
 import ScrollToTop from './components/ScrollToTop.jsx';
 import AdminLayout from './components/AdminLayout.jsx';
+import ChatbotWidget from './components/ChatbotWidget.jsx';
 
 // Pages publiques
 import LandingPage from './pages/LandingPage.jsx';
@@ -111,6 +113,7 @@ function App() {
           </main>
           <Footer />
           <ScrollToTop />
+          <ChatbotWidget />
         </div>
       </Router>
       </SettingsProvider>

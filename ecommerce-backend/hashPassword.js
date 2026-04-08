@@ -1,12 +1,11 @@
 const bcrypt = require('bcryptjs');
 
 async function hashPassword(password) {
-  const hashed = await bcrypt.hash(password, 10);
-  console.log('Mot de passe:', password);
-  console.log('Hash:', hashed);
-  console.log('---');
+  if (!password) {
+    throw new Error('Password requis pour le hashage');
+  }
+
+  return bcrypt.hash(password, 10);
 }
 
-// Hasher les mots de passe
-hashPassword('password123');  // Pour l'admin
-hashPassword('123456');       // Pour le client
+module.exports = hashPassword;
