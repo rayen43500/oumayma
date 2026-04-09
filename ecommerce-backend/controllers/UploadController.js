@@ -25,14 +25,26 @@ class UploadController {
       if (!req.file) {
         return res.status(400).json({ message: 'Aucun fichier uploadé' });
       }
+
       const logoUrl = `${req.protocol}://${req.get('host')}/uploads/products/${req.file.filename}`;
-      res.json({
-        success: true,
-        message: 'Logo uploadé avec succès',
-        logoUrl: logoUrl,
-        filename: req.file.filename,
-        data: { logoPath: logoUrl }  // ← format attendu par SiteSettings.jsx
-      });
+
+      db.query(
+        'UPDATE site_settings SET setting_value = ? WHERE setting_key = ?',
+        [logoUrl, 'site_logo'],
+        (err) => {
+          if (err) {
+            return res.status(500).json({ success: false, error: err.message });
+          }
+
+          res.json({
+            success: true,
+            message: 'Logo uploadé et sauvegardé avec succès',
+            logoUrl: logoUrl,
+            filename: req.file.filename,
+            data: { logoPath: logoUrl }
+          });
+        }
+      );
     } catch (error) {
       res.status(500).json({ error: error.message });
     }

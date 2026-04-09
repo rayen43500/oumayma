@@ -3,6 +3,21 @@ import { Container, Card, Form, Button, Alert, Tabs, Tab, Spinner } from 'react-
 import api from '../services/api';
 import { useSettings } from '../context/SettingsContext.jsx';
 
+const API_BASE_URL = 'http://localhost:5000';
+
+const resolveMediaUrl = (value) => {
+  if (!value) return '';
+  if (value.startsWith('http://') || value.startsWith('https://') || value.startsWith('data:')) return value;
+  const uploadsIndex = value.indexOf('/uploads/');
+  if (uploadsIndex !== -1) {
+    return `${API_BASE_URL}${value.slice(uploadsIndex)}`;
+  }
+  if (value.startsWith('uploads/')) {
+    return `${API_BASE_URL}/${value}`;
+  }
+  return value;
+};
+
 const SiteSettings = () => {
   const { refreshSettings } = useSettings();
   const [settings, setSettings] = useState({});
@@ -102,7 +117,7 @@ const SiteSettings = () => {
         setMessage({ type: 'success', text: '✅ Logo téléchargé avec succès !' });
         
         // Récupérer le chemin du logo depuis la réponse
-        const logoPath = response.data.data?.logoPath || response.data.logoPath;
+        const logoPath = response.data.data?.logoPath || response.data.logoPath || response.data.logoUrl;
         
         if (logoPath) {
           setSettings({
@@ -509,7 +524,7 @@ const SiteSettings = () => {
                       <p className="text-muted mb-2">Logo actuel :</p>
                       {settings.site_logo.startsWith('http') || settings.site_logo.includes('/uploads') ? (
                         <img 
-                          src={settings.site_logo} 
+                          src={resolveMediaUrl(settings.site_logo)} 
                           alt="Logo" 
                           style={{ maxWidth: '200px', maxHeight: '100px', objectFit: 'contain' }}
                         />

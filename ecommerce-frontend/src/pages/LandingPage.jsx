@@ -7,6 +7,19 @@ import productService from '../services/productService';
 
 const API_BASE_URL = 'http://localhost:5000';
 
+const resolveMediaUrl = (value) => {
+  if (!value) return '';
+  if (value.startsWith('http://') || value.startsWith('https://') || value.startsWith('data:')) return value;
+  const uploadsIndex = value.indexOf('/uploads/');
+  if (uploadsIndex !== -1) {
+    return `${API_BASE_URL}${value.slice(uploadsIndex)}`;
+  }
+  if (value.startsWith('uploads/')) {
+    return `${API_BASE_URL}/${value}`;
+  }
+  return value;
+};
+
 const LandingPage = () => {
   const { settings } = useSettings();
   const [events, setEvents] = useState([]);
@@ -271,7 +284,7 @@ RIGOULA se prépare à conquérir les marchés internationaux pour faire découv
                   <div className="floating-element">
                     {settings.site_logo.startsWith('http') || settings.site_logo.includes('/uploads') ? (
                       <img 
-                        src={settings.site_logo} 
+                        src={resolveMediaUrl(settings.site_logo)} 
                         alt="Logo Rigoula" 
                         style={{ 
                           maxWidth: '300%', 

@@ -4,6 +4,21 @@ import { Navbar, Nav, Container, NavDropdown, Button } from 'react-bootstrap';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useSettings } from '../context/SettingsContext.jsx';
 
+const API_BASE_URL = 'http://localhost:5000';
+
+const resolveMediaUrl = (value) => {
+  if (!value) return '';
+  if (value.startsWith('http://') || value.startsWith('https://') || value.startsWith('data:')) return value;
+  const uploadsIndex = value.indexOf('/uploads/');
+  if (uploadsIndex !== -1) {
+    return `${API_BASE_URL}${value.slice(uploadsIndex)}`;
+  }
+  if (value.startsWith('uploads/')) {
+    return `${API_BASE_URL}/${value}`;
+  }
+  return value;
+};
+
 const NavigationBar = () => {
   const { user, logout, isAuthenticated, isAdmin } = useAuth();
   const { settings } = useSettings();
@@ -11,6 +26,7 @@ const NavigationBar = () => {
   const [expanded, setExpanded] = useState(false);
   const logoValue = settings.site_logo || '';
   const isLogoImage = logoValue.startsWith('http') || logoValue.includes('/uploads');
+  const logoSrc = resolveMediaUrl(logoValue);
 
   const handleLogout = () => {
     logout();
@@ -31,7 +47,7 @@ const NavigationBar = () => {
           {logoValue && (
             isLogoImage ? (
               <img 
-                src={logoValue} 
+                src={logoSrc} 
                 alt="Logo" 
                 style={{ height: '50px', objectFit: 'contain' }}
               />
