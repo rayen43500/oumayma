@@ -9,6 +9,8 @@ const NavigationBar = () => {
   const { settings } = useSettings();
   const navigate = useNavigate();
   const [expanded, setExpanded] = useState(false);
+  const logoValue = settings.site_logo || '';
+  const isLogoImage = logoValue.startsWith('http') || logoValue.includes('/uploads');
 
   const handleLogout = () => {
     logout();
@@ -26,15 +28,15 @@ const NavigationBar = () => {
       <Container>
         <Navbar.Brand as={Link} to="/" onClick={() => setExpanded(false)} className="fw-bold d-flex align-items-center gap-2">
           {/* Logo dynamique */}
-          {settings.site_logo && (
-            settings.site_logo.startsWith('http') ? (
+          {logoValue && (
+            isLogoImage ? (
               <img 
-                src={settings.site_logo} 
+                src={logoValue} 
                 alt="Logo" 
                 style={{ height: '50px', objectFit: 'contain' }}
               />
             ) : (
-              <span style={{ fontSize: '1.8rem' }}>{settings.site_logo}</span>
+              <span style={{ fontSize: '1.8rem' }}>{logoValue}</span>
             )
           )}
           {settings.site_name || 'RIGOULA'}

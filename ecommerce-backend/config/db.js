@@ -894,9 +894,10 @@ async function executeQuery(sql, params) {
     const [setting_value, setting_key] = params;
     const result = await db.collection('site_settings').updateOne(
       { setting_key },
-      { $set: { setting_value } }
+      { $set: { setting_value } },
+      { upsert: true }
     );
-    return { affectedRows: result.matchedCount };
+    return { affectedRows: result.matchedCount + (result.upsertedCount || 0) };
   }
 
   throw new Error(`Requête non supportée par l'adaptateur MongoDB: ${sql}`);

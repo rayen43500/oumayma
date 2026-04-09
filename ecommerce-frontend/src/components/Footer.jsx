@@ -5,6 +5,18 @@ import { useSettings } from '../context/SettingsContext.jsx';
 
 const Footer = () => {
   const { settings } = useSettings();
+  const currentYear = new Date().getFullYear();
+  const displayName = (settings.site_name || 'RIGOULA').toUpperCase();
+
+  const logoValue = settings.site_logo || '';
+  const isLogoImage = logoValue.startsWith('http') || logoValue.includes('/uploads');
+
+  const socialLinks = [
+    { key: 'facebook_url', icon: 'fab fa-facebook-f', title: 'Facebook' },
+    { key: 'instagram_url', icon: 'fab fa-instagram', title: 'Instagram' },
+    { key: 'twitter_url', icon: 'fab fa-x-twitter', title: 'X' },
+    { key: 'linkedin_url', icon: 'fab fa-linkedin-in', title: 'LinkedIn' }
+  ].filter(({ key }) => settings[key] && settings[key] !== '#');
 
   return (
     <footer className="footer-animated py-5 mt-auto">
@@ -13,21 +25,21 @@ const Footer = () => {
           <Col md={4} className="mb-4 mb-md-0">
             <h5 className="mb-4 footer-title d-flex align-items-center gap-2">
               {/* Logo dynamique */}
-              {settings.site_logo && (
-                settings.site_logo.startsWith('http') ? (
+              {logoValue && (
+                isLogoImage ? (
                   <img 
-                    src={settings.site_logo} 
+                    src={logoValue} 
                     alt="Logo" 
                     style={{ height: '40px', objectFit: 'contain' }}
                   />
                 ) : (
-                  <span style={{ fontSize: '1.5rem' }}>{settings.site_logo}</span>
+                  <span style={{ fontSize: '1.5rem' }}>{logoValue}</span>
                 )
               )}
-              {settings.site_name || 'Rigoula'}
+              {displayName}
             </h5>
             <p className="text-white-50" style={{ fontSize: '0.95rem', lineHeight: '1.8', fontWeight: '400' }}>
-              {settings.site_description || 'Votre partenaire de confiance pour des produits agricoles biologiques de qualité supérieure en Tunisie.'}
+              {settings.site_description || 'RIGOULA'}
             </p>
           </Col>
 
@@ -54,34 +66,36 @@ const Footer = () => {
           </Col>
 
           <Col md={4}>
-            <h6 className="mb-4 footer-subtitle">Contact Details</h6>
+            <h6 className="mb-4 footer-subtitle">Contact</h6>
             <ul className="list-unstyled text-white-50" style={{ fontSize: '0.95rem', fontWeight: '400' }}>
               <li className="mb-3">
-                <i className="fas fa-phone" style={{ marginRight: '10px', color: '#a7f3d0' }}></i>
-                {settings.contact_phone || '+216 71 234 567'}
+                <i className="fas fa-phone" style={{ marginRight: '10px', color: '#ffffff' }}></i>
+                {settings.contact_phone || '+21612345678'}
               </li>
               <li className="mb-3">
-                <i className="fas fa-envelope" style={{ marginRight: '10px', color: '#a7f3d0' }}></i>
-                {settings.contact_email || 'contact@rigoula.com'}
+                <i className="fas fa-envelope" style={{ marginRight: '10px', color: '#ffffff' }}></i>
+                {settings.contact_email || 'test.test@test.com'}
               </li>
               <li className="mb-3">
-                <i className="fas fa-map-marker-alt" style={{ marginRight: '10px', color: '#a7f3d0' }}></i>
-                {settings.contact_address || 'Tunis, Tunisie'}
+                <i className="fas fa-map-marker-alt" style={{ marginRight: '10px', color: '#ffffff' }}></i>
+                {settings.contact_address || 'form form form'}
               </li>
             </ul>
             
             {/* Réseaux sociaux */}
             <div className="mt-4 d-flex gap-3 justify-content-end">
-              {settings.facebook_url && settings.facebook_url !== '#' && (
-                <a href={settings.facebook_url} target="_blank" rel="noopener noreferrer" className="footer-social-icon" title="Facebook">
-                  <i className="fab fa-facebook-f"></i>
+              {socialLinks.map((social) => (
+                <a
+                  key={social.key}
+                  href={settings[social.key]}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="footer-social-icon"
+                  title={social.title}
+                >
+                  <i className={social.icon}></i>
                 </a>
-              )}
-              {settings.instagram_url && settings.instagram_url !== '#' && (
-                <a href={settings.instagram_url} target="_blank" rel="noopener noreferrer" className="footer-social-icon" title="Instagram">
-                  <i className="fab fa-instagram"></i>
-                </a>
-              )}
+              ))}
             </div>
           </Col>
         </Row>
@@ -91,7 +105,7 @@ const Footer = () => {
         <Row>
           <Col className="text-center text-white-50">
             <p className="mb-0" style={{ fontSize: '0.9rem', fontWeight: '400' }}>
-              © 2026 {settings.site_name || 'Rigoula'}
+              © {currentYear} {displayName}
             </p>
           </Col>
         </Row>
